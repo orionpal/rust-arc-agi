@@ -41,13 +41,12 @@ pub fn load_puzzle(file_path: &str) -> Puzzle {
     };
     if let Some(test_data) = json.get("test").and_then(|t| t.as_array()) {
         for test_case in test_data {
-            if let Some(input) = test_case.get("input") {
+            if let (Some(input), Some(output)) = (test_case.get("input"), test_case.get("output")) {
                 let input_grid = create_grid_from_value(input);
-                let width = input_grid.width;
-                let height = input_grid.height;
+                let output_grid = create_grid_from_value(output);
                 test = Pair {
                     input: input_grid,
-                    output: Grid::new(width, height)
+                    output: output_grid
                 }
             }
         }
@@ -77,11 +76,11 @@ fn create_grid_from_value(value: &Value) -> Grid {
     }
 }
 
-pub fn try_reading_random_puzzle(filepath: String, mut player: Box<dyn Player>) {
-    match reader::get_random_file_from_directory(filepath) {
+pub fn try_reading_random_puzzle(filepath: String, mut player: &mut Box<dyn Player>) {
+    match get_random_file_from_directory(filepath) {
         Some(file_path) => {
             println!("Random file: {}", file_path);
-            let puzzle = reader::load_puzzle(&file_path);
+            let puzzle = load_puzzle(&file_path);
             for train in &puzzle.train {
                 println!("input:");
                 println!("{}", train.input);
@@ -91,7 +90,9 @@ pub fn try_reading_random_puzzle(filepath: String, mut player: Box<dyn Player>) 
             println!("final test:");
             println!("{}", puzzle.test.input);
             println!("attempted solution:");
-            println!("{}", player.solve(&puzzle))
+            println!("{}", player.solve(&puzzle));
+            println!("actual solution:");
+            println!("{}", puzzle.test.output);
         },
         None => println!("No files found in the directory or unable to read the directory."),
     }

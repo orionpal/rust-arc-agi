@@ -1,4 +1,5 @@
 use std::env;
+use crate::evaluator::run_over_all_files;
 use crate::example_player::{MyPlayer};
 use crate::player::{Player};
 use crate::reader::try_reading_random_puzzle;
@@ -6,26 +7,28 @@ mod reader;
 mod puzzle;
 mod player;
 mod example_player;
+mod evaluator;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let training_path = "training/";
     let evaluation_path = "evaluation/";
     // put your model here:
-    let player: Box<dyn Player> = Box::new(MyPlayer { });
+    let mut player: Box<dyn Player> = Box::new(MyPlayer { });
 
     match args.len() {
         1 => {
             // No arguments, try a random file
-            try_reading_random_puzzle(training_path.to_string(), player);
+            try_reading_random_puzzle(training_path.to_string(), &mut player);
         },
         2 => {
             // One argument provided
             let argument = &args[1];
-            // if argument == "full" {
-            //     // Run over all training and evaluation files
-            //     run_over_all_files(training_path);
-            //     run_over_all_files(evaluation_path);
+            if argument == "full" {
+                // Run over all training and evaluation files
+                run_over_all_files(training_path, &mut player);
+                run_over_all_files(evaluation_path, &mut player);
+            }
             // } else if check_file_exists(training_path, argument) {
             //     // Try solving the specified file in training
             //     player::solve_puzzle(format!("{}/{}", training_path, argument));
