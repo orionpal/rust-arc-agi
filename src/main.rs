@@ -3,11 +3,14 @@ use crate::evaluator::run_over_all_files;
 use crate::example_player::{MyPlayer};
 use crate::player::{Player};
 use crate::reader::try_reading_random_puzzle;
+use crate::graphics::window::start_app;
 mod reader;
 mod puzzle;
 mod player;
 mod example_player;
 mod evaluator;
+mod graphics;
+
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -19,7 +22,9 @@ fn main() {
     match args.len() {
         1 => {
             // No arguments, try a random file
+            start_app();
             try_reading_random_puzzle(training_path.to_string(), &mut player);
+
         },
         2 => {
             // One argument provided
@@ -48,5 +53,4 @@ fn main() {
     // 1. Train off of training data set
     // 2. Attempt evaluation set
     // 3. Display results
-    println!("Hello, world!");
 }

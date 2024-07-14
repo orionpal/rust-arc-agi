@@ -4,7 +4,6 @@ use std::path::Path;
 use serde_json::{from_str, Value};
 use crate::player::{Player};
 use crate::puzzle::{Grid, Pair, Puzzle};
-use crate::reader;
 
 pub fn get_random_file_from_directory<P: AsRef<Path>>(dir: P) -> Option<String> {
     let entries = fs::read_dir(dir).ok()?
@@ -90,7 +89,8 @@ pub fn try_reading_random_puzzle(filepath: String, mut player: &mut Box<dyn Play
             println!("final test:");
             println!("{}", puzzle.test.input);
             println!("attempted solution:");
-            println!("{}", player.solve(&puzzle));
+            let solved_grid = player.solve(&puzzle);
+            println!("{}", solved_grid);
             println!("actual solution:");
             println!("{}", puzzle.test.output);
         },
