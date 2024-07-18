@@ -1,6 +1,17 @@
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 
+
+const GRID_WIDTH: usize = 10;
+const GRID_HEIGHT: usize = 8;
+const CELL_SIZE: f32 = 50.0;
+const LINE_THICKNESS: f32 = 2.0;
+
+#[derive(Component)]
+struct Cell;
+
+#[derive(Component)]
+struct GridLine;
 pub fn start_app() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -68,6 +79,7 @@ fn setup(mut commands: Commands,
                     ));
                 });
         });
+    setup_grid(commands);
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -104,5 +116,79 @@ fn button_system(
                 border_color.0 = Color::BLACK;
             }
         }
+    }
+}
+
+fn setup_grid(mut commands: Commands){
+    // Spawn cells
+    for y in 0..GRID_HEIGHT {
+        for x in 0..GRID_WIDTH {
+            let position = Vec3::new(
+                (x as f32 - GRID_WIDTH as f32 / 2.0) * CELL_SIZE,
+                (y as f32 - GRID_HEIGHT as f32 / 2.0) * CELL_SIZE,
+                0.0,
+            );
+
+            commands.spawn((
+                SpriteBundle {
+                    sprite: Sprite {
+                        color: Color::rgb(
+                            (x as f32) / (GRID_WIDTH as f32),
+                            (y as f32) / (GRID_HEIGHT as f32),
+                            0.5,
+                        ),
+                        custom_size: Some(Vec2::splat(CELL_SIZE - LINE_THICKNESS)),
+                        ..default()
+                    },
+                    transform: Transform::from_translation(position),
+                    ..default()
+                },
+                Cell,
+            ));
+        }
+    }
+
+    // Spawn horizontal grid lines
+    for y in 0..=GRID_HEIGHT {
+        let position = Vec3::new(
+            0.0,
+            (y as f32 - GRID_HEIGHT as f32 / 2.0) * CELL_SIZE,
+            1.0,
+        );
+
+        commands.spawn((
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::BLACK,
+                    custom_size: Some(Vec2::new(GRID_WIDTH as f32 * CELL_SIZE, LINE_THICKNESS)),
+                    ..default()
+                },
+                transform: Transform::from_translation(position),
+                ..default()
+            },
+            GridLine,
+        ));
+    }
+
+    // Spawn vertical grid lines
+    for x in 0..=GRID_WIDTH {
+        let position = Vec3::new(
+            (x as f32 - GRID_WIDTH as f32 / 2.0) * CELL_SIZE,
+            0.0,
+            1.0,
+        );
+
+        commands.spawn((
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::BLACK,
+                    custom_size: Some(Vec2::new(LINE_THICKNESS, GRID_HEIGHT as f32 * CELL_SIZE)),
+                    ..default()
+                },
+                transform: Transform::from_translation(position),
+                ..default()
+            },
+            GridLine,
+        ));
     }
 }
