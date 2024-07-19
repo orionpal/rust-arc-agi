@@ -29,18 +29,7 @@ fn setup(mut commands: Commands,
         Camera2dBundle::default(),
         MyCameraMarker,
     ));
-    let shape = Mesh2dHandle(meshes.add(Rectangle::new(50.0, 50.0)));
-    let color = Color::rgb(0.0,55.0,0.0);
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: shape,
-        material: materials.add(color),
-        transform: Transform::from_xyz(
-            50.0,
-            0.0,
-            0.0,
-        ),
-        ..default()
-    });
+    // Create Button
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -148,47 +137,4 @@ fn setup_grid(mut commands: Commands){
         }
     }
 
-    // Spawn horizontal grid lines
-    for y in 0..=GRID_HEIGHT {
-        let position = Vec3::new(
-            0.0,
-            (y as f32 - GRID_HEIGHT as f32 / 2.0) * CELL_SIZE,
-            1.0,
-        );
-
-        commands.spawn((
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::BLACK,
-                    custom_size: Some(Vec2::new(GRID_WIDTH as f32 * CELL_SIZE, LINE_THICKNESS)),
-                    ..default()
-                },
-                transform: Transform::from_translation(position),
-                ..default()
-            },
-            GridLine,
-        ));
-    }
-
-    // Spawn vertical grid lines
-    for x in 0..=GRID_WIDTH {
-        let position = Vec3::new(
-            (x as f32 - GRID_WIDTH as f32 / 2.0) * CELL_SIZE,
-            0.0,
-            1.0,
-        );
-
-        commands.spawn((
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::BLACK,
-                    custom_size: Some(Vec2::new(LINE_THICKNESS, GRID_HEIGHT as f32 * CELL_SIZE)),
-                    ..default()
-                },
-                transform: Transform::from_translation(position),
-                ..default()
-            },
-            GridLine,
-        ));
-    }
 }
