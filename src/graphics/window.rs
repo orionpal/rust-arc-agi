@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+use crate::reader::load_puzzle;
 
 
 const GRID_WIDTH: usize = 10;
@@ -55,6 +56,7 @@ fn setup(mut commands: Commands,
                         ..default()
                     },
                     border_color: BorderColor(Color::BLACK),
+
                     ..default()
                 })
                 .with_children(|parent| {
@@ -68,6 +70,7 @@ fn setup(mut commands: Commands,
                     ));
                 });
         });
+    // Create Grid
     setup_grid(commands);
 }
 
@@ -75,6 +78,7 @@ const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 fn button_system(
+    mut commands: Commands,
     mut interaction_query: Query<
         (
             &Interaction,
@@ -93,6 +97,39 @@ fn button_system(
                 text.sections[0].value = "Press".to_string();
                 *color = PRESSED_BUTTON.into();
                 border_color.0 = Color::rgb(255.0,0.0,0.0);
+                let training_path = "training/";
+                let evaluation_path = "evaluation/";
+                let grid = load_puzzle(get_random_file_from_directory(&training_path));
+                for (y, row) in grid.values.iter().enumerate() {
+                    for (x, &value) in row.iter().enumerate() {
+                        let color = match value {
+                            0 => Color::rgb(0.0, 0.0, 0.0), // Black
+                            1 => Color::rgb(0.0, 1.0, 0.0), // Green
+                            2 => Color::rgb(0.0, 0.0, 1.0), // Blue
+                            3 => Color::rgb(1.0, 1.0, 0.0), // Yellow
+                            4 => Color::rgb(1.0, 0.0, 1.0), // Magenta
+                            5 => Color::rgb(0.0, 1.0, 1.0), // Cyan
+                            6 => Color::rgb(0.3, 0.3, 0.3), // Gray
+                            7 => Color::rgb(1.0, 0.0, 0.0), // Red
+                            8 => Color::rgb(0.7, 0.7, 0.7), // Light Gray
+                            9 => Color::rgb(1.0, 1.0, 1.0), // White
+                            _ => Color::rgb(0.0, 0.0, 0.0), // Default Black
+                        };
+
+                        commands.spawn_bundle(SpriteBundle {
+                            sprite: Sprite {
+                                color,
+                                ..Default::default()
+                            },
+                            transform: Transform {
+                                translation: Vec3::new(x as f32 * 20.0, y as f32 * 20.0, 0.0),
+                                scale: Vec3::splat(20.0),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        });
+                    }
+                }
             }
             Interaction::Hovered => {
                 text.sections[0].value = "Hover".to_string();
