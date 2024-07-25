@@ -1,18 +1,13 @@
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-use crate::reader::load_puzzle;
+use crate::graphics::colors::cell_color;
+use crate::reader::{get_random_file_from_directory, load_puzzle};
 
-
-const GRID_WIDTH: usize = 10;
-const GRID_HEIGHT: usize = 8;
 const CELL_SIZE: f32 = 50.0;
 const LINE_THICKNESS: f32 = 2.0;
 
 #[derive(Component)]
 struct Cell;
-
-#[derive(Component)]
-struct GridLine;
 pub fn start_app() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -36,8 +31,8 @@ fn setup(mut commands: Commands,
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                justify_content: JustifyContent::FlexStart,
                 ..default()
             },
             ..default()
@@ -61,7 +56,7 @@ fn setup(mut commands: Commands,
                 })
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
-                        "Button",
+                        "Random Puzzle",
                         TextStyle {
                             font: Default::default(),
                             font_size: 40.0,
@@ -70,8 +65,6 @@ fn setup(mut commands: Commands,
                     ));
                 });
         });
-    // Create Grid
-    setup_grid(commands);
 }
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -99,79 +92,42 @@ fn button_system(
                 border_color.0 = Color::rgb(255.0,0.0,0.0);
                 let training_path = "training/";
                 let evaluation_path = "evaluation/";
-                let grid = load_puzzle(get_random_file_from_directory(&training_path));
-                for (y, row) in grid.values.iter().enumerate() {
-                    for (x, &value) in row.iter().enumerate() {
-                        let color = match value {
-                            0 => Color::rgb(0.0, 0.0, 0.0), // Black
-                            1 => Color::rgb(0.0, 1.0, 0.0), // Green
-                            2 => Color::rgb(0.0, 0.0, 1.0), // Blue
-                            3 => Color::rgb(1.0, 1.0, 0.0), // Yellow
-                            4 => Color::rgb(1.0, 0.0, 1.0), // Magenta
-                            5 => Color::rgb(0.0, 1.0, 1.0), // Cyan
-                            6 => Color::rgb(0.3, 0.3, 0.3), // Gray
-                            7 => Color::rgb(1.0, 0.0, 0.0), // Red
-                            8 => Color::rgb(0.7, 0.7, 0.7), // Light Gray
-                            9 => Color::rgb(1.0, 1.0, 1.0), // White
-                            _ => Color::rgb(0.0, 0.0, 0.0), // Default Black
-                        };
+                let random_file = get_random_file_from_directory(&training_path).unwrap();
+                let puzzle = load_puzzle(&random_file);
+                for train in &puzzle.train {
+                    // Input
+                    for y in 0..train.input.height {
+                        for x in 0..train.input.width {
+                            let value = train.input.get(x, y);
+                            let color = cell_color(value);
 
-                        commands.spawn_bundle(SpriteBundle {
-                            sprite: Sprite {
-                                color,
+                            commands.spawn(SpriteBundle {
+                                sprite: Sprite {
+                                    color,
+                                    ..Default::default()
+                                },
+                                transform: Transform {
+                                    translation: Vec3::new(x as f32 * 20.0, y as f32 * 20.0, 0.0),
+                                    scale: Vec3::splat(20.0),
+                                    ..Default::default()
+                                },
                                 ..Default::default()
-                            },
-                            transform: Transform {
-                                translation: Vec3::new(x as f32 * 20.0, y as f32 * 20.0, 0.0),
-                                scale: Vec3::splat(20.0),
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        });
+                            });
+                        }
                     }
+                    // Output
                 }
             }
             Interaction::Hovered => {
-                text.sections[0].value = "Hover".to_string();
+                text.sections[0].value = "LOAD".to_string();
                 *color = HOVERED_BUTTON.into();
                 border_color.0 = Color::WHITE;
             }
             Interaction::None => {
-                text.sections[0].value = "Button".to_string();
+                text.sections[0].value = "Random Puzzle".to_string();
                 *color = NORMAL_BUTTON.into();
                 border_color.0 = Color::BLACK;
             }
         }
     }
-}
-
-fn setup_grid(mut commands: Commands){
-    // Spawn cells
-    for y in 0..GRID_HEIGHT {
-        for x in 0..GRID_WIDTH {
-            let position = Vec3::new(
-                (x as f32 - GRID_WIDTH as f32 / 2.0) * CELL_SIZE,
-                (y as f32 - GRID_HEIGHT as f32 / 2.0) * CELL_SIZE,
-                0.0,
-            );
-
-            commands.spawn((
-                SpriteBundle {
-                    sprite: Sprite {
-                        color: Color::rgb(
-                            (x as f32) / (GRID_WIDTH as f32),
-                            (y as f32) / (GRID_HEIGHT as f32),
-                            0.5,
-                        ),
-                        custom_size: Some(Vec2::splat(CELL_SIZE - LINE_THICKNESS)),
-                        ..default()
-                    },
-                    transform: Transform::from_translation(position),
-                    ..default()
-                },
-                Cell,
-            ));
-        }
-    }
-
 }
